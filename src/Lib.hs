@@ -1,6 +1,6 @@
 module Lib (Level, Tree(..), insert, delete, has) where
 
-import Data.Maybe (fromMaybe)
+import Data.Maybe (fromMaybe, catMaybes)
 
 type Level = Int
 
@@ -26,6 +26,25 @@ split t = case t of
     Branch (succ l2) (Branch l1 less1 k1 less2) k2 (Branch l3 less3 k3 more3)
   t -> t
 
+fixLevels :: Tree a -> Tree a
+fixLevels t = case t of
+  Leaf -> Leaf
+  Branch l1 less1 k1 more1
+    | tooHigh l1 less1 more1 -> Branch (pred l1) less1 k1 (demote l1 more1)
+  t -> t
+  where
+    levelOf :: Tree a -> Maybe Level
+    levelOf tree = case tree of
+      Branch l _ _ _ -> Just l
+      Leaf -> Nothing
+
+    tooHigh :: Level -> Tree a -> Tree a -> Bool
+    tooHigh l less more = pred l > (minimum $ catMaybes [Just l, levelOf less, levelOf more])
+
+    demote l1 t = case t of
+      Branch l2 less2 k2 more2 | l2 == l1 -> Branch (pred l2) less2 k2 more2
+      t -> t
+
 insert :: Ord a => Tree a -> a -> Tree a
 insert t k = case t of
   Leaf -> Branch 1 Leaf k Leaf
@@ -48,7 +67,11 @@ delete t k = fst $ go t False
           in let (more2', lst) = go more2 fnd'
           in go2 fnd' lst l2 less2 k2 more2'
 
-    go2 fnd lst l2 less2 k2 more2
+    go2 fnd lst l2 less2 k2 more2 =
+      let (tree, s) = go3 fnd lst l2 less2 k2 more2
+      in (split $ skew $ fixLevels tree, s)
+
+    go3 fnd lst l2 less2 k2 more2
       | True == fnd && lst == Nothing = case (less2, more2) of
         (Leaf, _) -> (more2, Just k2)
         (_, Leaf) -> (less2, Just k2)
