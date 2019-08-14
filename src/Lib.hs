@@ -35,30 +35,26 @@ insert t k = case t of
     GT -> split $ skew $ Branch l less k2 (insert more k)
 
 delete :: Ord a => Tree a -> a -> Tree a
-delete t k = case t of
-  Leaf -> Leaf
-  Branch l2 less2 k2 more2 -> fst $ go l2 less2 k2 more2
+delete t k = fst $ go t False
   where
-    isLast less2 k2 more2 = case k < k2 of
-      True | Leaf <- less2 -> True
-      False | Leaf <- more2 -> True
-      _ -> False
-    go l2 less2 k2 more2 = case isLast less2 k2 more2 of
-      True -> (Leaf, Just k2)
-      False -> case k < k2 of
-        True | Branch l3 less3 k3 more3 <- less2 ->
-          let (less2, s) = go l3 less3 k3 more3
-          in
-            ( Branch l2 less2 (if k == k2 then fromMaybe k2 s else k2) more2
-            , s
-            )
-        False | Branch l3 less3 k3 more3 <- more2 ->
-          let (more2, s) = go l3 less3 k3 more3
-          in
-            ( Branch l2 less2 (if k == k2 then fromMaybe k2 s else k2) more2
-            , s
-            )
+    go t2 fnd = case t2 of
+      Leaf -> (Leaf, Nothing)
+      Branch l2 less2 k2 more2 -> case k < k2 of
+        True ->
+          let (less2', lst) = go less2 fnd
+          in go2 fnd lst l2 less2' k2 more2
+        False ->
+          let fnd' = fnd || k == k2
+          in let (more2', lst) = go more2 fnd'
+          in go2 fnd' lst l2 less2 k2 more2'
+
+    go2 fnd lst l2 less2 k2 more2
+      | True == fnd && lst == Nothing = case (less2, more2) of
+        (Leaf, _) -> (more2, Just k2)
+        (_, Leaf) -> (less2, Just k2)
         _ -> error "Unreachable"
+      | Just lst <- lst, k == k2 = (Branch l2 less2 lst more2, Just lst)
+      | otherwise = (Branch l2 less2 k2 more2, lst)
 
 has :: Ord a => Tree a -> a -> Bool
 has t k = case t of

@@ -89,4 +89,5 @@ main = do
   putStr "All inserted items are in tree: "
   quickCheck (withMaxSuccess 10000 treeAfterAddContainsAll)
   putStrLn ""
+  putStrLn "Tree matches Set after operations: "
   quickCheck (withMaxSuccess 10000 treeAfterOpsContainsAll)
