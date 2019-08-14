@@ -2,8 +2,14 @@ import Test.QuickCheck
 import Data.Word (Word8)
 import qualified Data.Set as Set
 import qualified Data.Foldable as Foldable
+import Data.List (sort, nub)
 
 import Lib
+
+foldableToListIsSorted :: [Word8] -> Property
+foldableToListIsSorted is = reverse (sort (nub is)) === Foldable.toList tree
+  where
+    tree = foldr (\x t -> insert t x) Leaf is
 
 noSkippedLevels :: [Word8] -> Bool
 noSkippedLevels is = case tree of
@@ -45,6 +51,9 @@ treeAfterAddContainsAll is = allInTree === allAdded
 
 main :: IO ()
 main = do
+  putStrLn ""
+  putStr "Tree toList is sorted: "
+  quickCheck (withMaxSuccess 10000 foldableToListIsSorted)
   putStrLn ""
   putStr "No left horizontals when adding to tree: "
   quickCheck (withMaxSuccess 10000 noLeftHorizontalsWhenAdding)
