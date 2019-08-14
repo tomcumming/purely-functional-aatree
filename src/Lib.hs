@@ -7,6 +7,11 @@ data Tree a =
   | Branch Level (Tree a) a (Tree a)
   deriving (Show)
 
+instance Foldable Tree where
+  foldr f x tree = case tree of
+    Leaf -> x
+    Branch _ less v more -> foldr f (f v (foldr f x less)) more
+
 skew :: Tree a -> Tree a
 skew t = case t of
   Branch l1 (Branch l2 less2 k2 more2) k1 more1 | l1 == l2 ->
