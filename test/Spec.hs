@@ -49,6 +49,31 @@ treeAfterAddContainsAll is = allInTree === allAdded
     allInTree = Set.fromList (Foldable.toList tree)
     allAdded = Set.fromList is
 
+data Op = Add Word8 | Remove Word8 deriving Show
+
+instance Arbitrary Op where
+  arbitrary = do
+    x <- arbitrary
+    y <- arbitrary
+    return $ if x then Add y else Remove y
+
+treeAfterOpsContainsAll :: [Op] -> Property
+treeAfterOpsContainsAll ops = testSet === Set.fromList (Foldable.toList tree)
+  where
+    tree :: Tree Word8
+    tree = foldr
+      (\op t -> case op of
+        Add x -> insert t x
+        Remove x -> delete t x)
+      Leaf
+      ops
+    testSet = foldr
+      (\op s -> case op of
+        Add x -> Set.insert x s
+        Remove x -> Set.delete x s)
+      Set.empty
+      ops
+
 main :: IO ()
 main = do
   putStrLn ""
@@ -63,3 +88,5 @@ main = do
   quickCheck (withMaxSuccess 10000 noSkippedLevels)
   putStr "All inserted items are in tree: "
   quickCheck (withMaxSuccess 10000 treeAfterAddContainsAll)
+  putStrLn ""
+  quickCheck (withMaxSuccess 10000 treeAfterOpsContainsAll)

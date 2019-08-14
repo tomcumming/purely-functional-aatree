@@ -35,3 +35,4 @@ tests:
     dependencies:
     - pfaatree
     - QuickCheck >= 2.13
+    - containers >= 0.6

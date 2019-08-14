@@ -1,4 +1,6 @@
-module Lib (Level, Tree(..), insert, has) where
+module Lib (Level, Tree(..), insert, delete, has) where
+
+import Data.Maybe (fromMaybe)
 
 type Level = Int
 
@@ -31,6 +33,32 @@ insert t k = case t of
     EQ -> t
     LT -> split $ skew $ Branch l (insert less k) k2 more
     GT -> split $ skew $ Branch l less k2 (insert more k)
+
+delete :: Ord a => Tree a -> a -> Tree a
+delete t k = case t of
+  Leaf -> Leaf
+  Branch l2 less2 k2 more2 -> fst $ go l2 less2 k2 more2
+  where
+    isLast less2 k2 more2 = case k < k2 of
+      True | Leaf <- less2 -> True
+      False | Leaf <- more2 -> True
+      _ -> False
+    go l2 less2 k2 more2 = case isLast less2 k2 more2 of
+      True -> (Leaf, Just k2)
+      False -> case k < k2 of
+        True | Branch l3 less3 k3 more3 <- less2 ->
+          let (less2, s) = go l3 less3 k3 more3
+          in
+            ( Branch l2 less2 (if k == k2 then fromMaybe k2 s else k2) more2
+            , s
+            )
+        False | Branch l3 less3 k3 more3 <- more2 ->
+          let (more2, s) = go l3 less3 k3 more3
+          in
+            ( Branch l2 less2 (if k == k2 then fromMaybe k2 s else k2) more2
+            , s
+            )
+        _ -> error "Unreachable"
 
 has :: Ord a => Tree a -> a -> Bool
 has t k = case t of
