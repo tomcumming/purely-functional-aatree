@@ -69,7 +69,7 @@ delete t k = fst $ go t False
 
     go2 fnd lst l2 less2 k2 more2 =
       let (tree, s) = go3 fnd lst l2 less2 k2 more2
-      in (split $ skew $ fixLevels tree, s)
+      in (splitRight $ split $ skewRightRight $ skewRight $ skew $ fixLevels tree, s)
 
     go3 fnd lst l2 less2 k2 more2
       | True == fnd && lst == Nothing = case (less2, more2) of
@@ -78,6 +78,23 @@ delete t k = fst $ go t False
         _ -> error "Unreachable"
       | Just lst <- lst, k == k2 = (Branch l2 less2 lst more2, Just lst)
       | otherwise = (Branch l2 less2 k2 more2, lst)
+
+    skewRight :: Tree a -> Tree a
+    skewRight t = case t of
+      Leaf -> Leaf
+      Branch l less k more -> Branch l less k (skew more)
+
+    skewRightRight :: Tree a -> Tree a
+    skewRightRight t = case t of
+      Leaf -> Leaf
+      Branch l less k more -> case more of
+        Leaf -> Branch l less k more
+        Branch l2 less2 k2 more2 -> Branch l less k (Branch l2 less2 k2 (skew more2))
+
+    splitRight :: Tree a -> Tree a
+    splitRight t = case t of
+      Leaf -> Leaf
+      Branch l less k more -> Branch l less k (split more)
 
 has :: Ord a => Tree a -> a -> Bool
 has t k = case t of

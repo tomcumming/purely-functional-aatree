@@ -104,19 +104,8 @@ main = do
   quickCheck (withMaxSuccess 10000 treeAfterOpsContainsAll)
   putStr "No left horizontals when adding and removing: "
   quickCheck (withMaxSuccess 10000 noLeftHorizontals)
-
-{- Failing
-  [Remove 246,Remove 250,Add 189,Add 227,Add 243,Add 246,Add 232,Add 242,Add 250,Add 182,Add 88]
-  [Remove 121,Add 107,Remove 134,Add 134,Add 147,Add 119,Add 182,Add 104,Add 121,Add 99,Add 188,Add 117,Add 203,Add 50,Add 86,Add 15,Add 144,Add 173,Add 71,Add 84,Add 10,Add 226,Add 207]
--}
-
   putStr "No level right grandchildren when adding and removing: "
   quickCheck (withMaxSuccess 10000 noLevelRightGrandchild)
-
-{- Failing
-  [Remove 63,Add 119,Add 144,Add 96,Add 126,Add 182,Add 252,Add 151,Add 177,Remove 19,Add 19,Add 63,Add 7,Add 114,Add 91]
--}
-
   putStr "No levels skipped when adding and removing: "
   quickCheck (withMaxSuccess 10000 noSkippedLevels)
 
